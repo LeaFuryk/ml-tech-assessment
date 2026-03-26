@@ -1,1 +1,1 @@
-from app.ports.llm import LLm
+from app.ports.llm import LLM

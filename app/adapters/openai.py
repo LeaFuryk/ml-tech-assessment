@@ -3,7 +3,7 @@ import pydantic
 from app import ports
 
 
-class OpenAIAdapter(ports.LLm):
+class OpenAIAdapter(ports.LLM):
     def __init__(self, api_key: str, model: str) -> None:
         self._model = model
         self._client = openai.OpenAI(api_key=api_key)
