@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from app.domain.errors import TranscriptAnalysisError
-from app.domain.models import TranscriptRequest, TranscriptAnalysis
+from app.domain.models import BatchTranscriptRequest, TranscriptRequest, TranscriptAnalysis
 from app.services.transcript import TranscriptService
 
 router = APIRouter(prefix="/api/v1", tags=["Transcripts"])
@@ -43,3 +43,19 @@ def get_analysis(
     if analysis is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return analysis
+
+
+@router.post(
+    "/transcripts/analyze/batch",
+    response_model=list[TranscriptAnalysis],
+    status_code=201,
+    summary="Analyze multiple transcripts concurrently",
+)
+async def analyze_batch(
+    body: BatchTranscriptRequest,
+    service: TranscriptService = Depends(get_transcript_service),
+):
+    try:
+        return await service.analyze_batch(body.transcripts)
+    except TranscriptAnalysisError as e:
+        raise HTTPException(status_code=502, detail=str(e))
