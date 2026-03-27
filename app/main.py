@@ -7,6 +7,7 @@ from app.configurations import EnvConfigs
 from app.services.transcript import TranscriptService
 from app.api.routes import router as api_router
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     config = EnvConfigs()
@@ -27,4 +28,5 @@ app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("app.main:app", reload=True)
