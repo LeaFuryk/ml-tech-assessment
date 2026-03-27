@@ -1,1 +1,2 @@
 from app.ports.llm import LLM
+from app.ports.transcript_analysis_repository import TranscriptAnalysisRepository
