@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 MAX_CONCURRENT_ANALYSES = 3
 
+
 class TranscriptService:
     def __init__(self, llm: LLM, repository: TranscriptAnalysisRepository) -> None:
         self.llm = llm
@@ -21,7 +22,9 @@ class TranscriptService:
         prompt = RAW_USER_PROMPT.format(transcript=transcript)
         try:
             response = self.llm.run_completion(
-                system_prompt=SYSTEM_PROMPT, user_prompt=prompt, dto=TranscriptAnalysisDTO
+                system_prompt=SYSTEM_PROMPT,
+                user_prompt=prompt,
+                dto=TranscriptAnalysisDTO,
             )
         except Exception as e:
             logger.exception("LLM analysis failed", exc_info=True)
@@ -46,7 +49,9 @@ class TranscriptService:
         return self.repository.get_by_id(analysis_id)
 
     async def analyze_batch(self, transcripts: list[str]) -> list[TranscriptAnalysis]:
-        logger.info("Starting batch transcript analysis for %d transcripts", len(transcripts))
+        logger.info(
+            "Starting batch transcript analysis for %d transcripts", len(transcripts)
+        )
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_ANALYSES)
 
         async def run_one(transcript: str) -> TranscriptAnalysis:
@@ -55,5 +60,7 @@ class TranscriptService:
 
         tasks = [run_one(t) for t in transcripts]
         analyses = list(await asyncio.gather(*tasks))
-        logger.info("Batch transcript analysis completed with %d analyses", len(analyses))
+        logger.info(
+            "Batch transcript analysis completed with %d analyses", len(analyses)
+        )
         return analyses

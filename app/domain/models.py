@@ -30,6 +30,7 @@ class TranscriptRequest(pydantic.BaseModel):
             raise ValueError("Transcript must not be empty")
         return v
 
+
 class BatchTranscriptRequest(pydantic.BaseModel):
     """Request body for batch transcript analysis."""
 

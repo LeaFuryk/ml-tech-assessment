@@ -1,6 +1,10 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from app.domain.errors import TranscriptAnalysisError
-from app.domain.models import BatchTranscriptRequest, TranscriptRequest, TranscriptAnalysis
+from app.domain.models import (
+    BatchTranscriptRequest,
+    TranscriptRequest,
+    TranscriptAnalysis,
+)
 from app.services.transcript import TranscriptService
 
 router = APIRouter(prefix="/api/v1", tags=["Transcripts"])

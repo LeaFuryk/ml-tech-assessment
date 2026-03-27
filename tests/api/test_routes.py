@@ -130,6 +130,7 @@ def test_analyze_response_contains_all_expected_fields(client):
     data = response.json()
     assert set(data.keys()) == {"id", "summary", "action_items"}
 
+
 def test_returns_500_when_service_not_initialized():
     app = FastAPI()
     app.include_router(router)

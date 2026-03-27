@@ -33,7 +33,9 @@ class TestBatchTranscriptRequest:
             BatchTranscriptRequest(transcripts=transcripts)
 
     def test_empty_transcript_in_list_raises(self):
-        with pytest.raises(pydantic.ValidationError, match="Each transcript must not be empty"):
+        with pytest.raises(
+            pydantic.ValidationError, match="Each transcript must not be empty"
+        ):
             BatchTranscriptRequest(transcripts=["Valid text", ""])
 
     def test_exactly_at_max_batch_size(self):
