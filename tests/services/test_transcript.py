@@ -136,3 +136,45 @@ def test_analyze_does_not_persist_when_llm_returns_none(repository):
         service.analyze("Some transcript")
 
     assert repository.save_count == 0
+
+
+@pytest.mark.asyncio
+async def test_analyze_batch_returns_correct_number_of_results(service):
+    results = await service.analyze_batch(["Text 1", "Text 2", "Text 3"])
+    assert len(results) == 3
+
+
+@pytest.mark.asyncio
+async def test_analyze_batch_generates_unique_ids(service):
+    results = await service.analyze_batch(["Text 1", "Text 2", "Text 3"])
+    ids = [r.id for r in results]
+    assert len(set(ids)) == 3
+
+
+@pytest.mark.asyncio
+async def test_analyze_batch_persists_all_results(service, repository):
+    results = await service.analyze_batch(["Text 1", "Text 2"])
+    assert repository.save_count == 2
+    for result in results:
+        assert repository.get_by_id(result.id) is not None
+
+
+@pytest.mark.asyncio
+async def test_analyze_batch_single_transcript(service):
+    results = await service.analyze_batch(["Only one"])
+    assert len(results) == 1
+
+
+@pytest.mark.asyncio
+async def test_analyze_batch_propagates_llm_failure(repository):
+    llm = FakeLLM(error=RuntimeError("API down"))
+    service = TranscriptService(llm, repository)
+
+    with pytest.raises(TranscriptAnalysisError):
+        await service.analyze_batch(["Text 1", "Text 2"])
+
+
+@pytest.mark.asyncio
+async def test_analyze_batch_calls_llm_once_per_transcript(service, llm):
+    await service.analyze_batch(["Text 1", "Text 2", "Text 3"])
+    assert llm.call_count == 3
