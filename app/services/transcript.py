@@ -1,5 +1,6 @@
 import uuid
 
+from app.domain.errors import TranscriptAnalysisError
 from app.domain.models import TranscriptAnalysis, TranscriptAnalysisDTO
 from app.ports import LLM, TranscriptAnalysisRepository
 from app.prompts import RAW_USER_PROMPT, SYSTEM_PROMPT
@@ -12,9 +13,16 @@ class TranscriptService:
 
     def analyze(self, transcript: str) -> TranscriptAnalysis:
         prompt = RAW_USER_PROMPT.format(transcript=transcript)
-        response = self.llm.run_completion(
-            system_prompt=SYSTEM_PROMPT, user_prompt=prompt, dto=TranscriptAnalysisDTO
-        )
+        try:
+            response = self.llm.run_completion(
+                system_prompt=SYSTEM_PROMPT, user_prompt=prompt, dto=TranscriptAnalysisDTO
+            )
+        except Exception as e:
+            raise TranscriptAnalysisError("LLM analysis failed") from e
+
+        if response is None:
+            raise TranscriptAnalysisError("LLM returned an empty response")
+
         analysis = TranscriptAnalysis(
             id=str(uuid.uuid4()),
             summary=response.summary,

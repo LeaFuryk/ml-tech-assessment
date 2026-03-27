@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
+from app.domain.errors import TranscriptAnalysisError
 from app.domain.models import TranscriptRequest, TranscriptAnalysis
 from app.services.transcript import TranscriptService
 
@@ -24,7 +25,10 @@ def analyze_transcript(
     body: TranscriptRequest,
     service: TranscriptService = Depends(get_transcript_service),
 ):
-    return service.analyze(body.transcript)
+    try:
+        return service.analyze(body.transcript)
+    except TranscriptAnalysisError as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
 
 @router.get(
