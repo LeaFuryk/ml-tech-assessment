@@ -24,3 +24,6 @@ class TranscriptService:
 
         self.repository.save(analysis)
         return analysis
+    
+    def get_analysis(self, analysis_id: str) -> TranscriptAnalysis | None:
+        return self.repository.get_by_id(analysis_id)
