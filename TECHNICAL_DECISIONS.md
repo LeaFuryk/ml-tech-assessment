@@ -8,6 +8,10 @@ The assessment mentions using GET requests for transcript analysis. I chose POST
 - POST is semantically correct when creating a resource (the analysis).
 - Transcripts can be large, exceeding URL length limits if sent as query parameters.
 
+## OpenAI Adapter — Not Modified
+
+The `OpenAIAdapter` was provided as part of the assessment and marked as "do not implement." It was intentionally left unchanged. In a production setting, the adapter would handle OpenAI-specific exceptions (e.g., rate limits, authentication errors) and translate them into domain errors. The current error handling in the service layer acts as a catch-all safety net but is not a substitute for proper adapter-level error handling.
+
 ## Hexagonal Architecture
 
 The codebase follows a ports and adapters pattern:
