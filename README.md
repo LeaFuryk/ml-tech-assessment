@@ -25,10 +25,37 @@
    poetry install
    ```
 
+3. Install dev dependencies (linter, test coverage, async test support):
+   ```bash
+   poetry install --with dev
+   ```
+
 ## Environment Variables
 
 1. Create a `.env` file in the root directory of the project
 2. Copy the contents of the provided `.env` file into your local `.env` file
+
+## Running the Application
+
+Start the API server:
+```bash
+poetry run uvicorn app.main:app --reload
+```
+
+Or directly:
+```bash
+poetry run python -m app.main
+```
+
+Swagger UI is available at: `http://localhost:8000/docs`
+
+## API Endpoints
+
+| Method | Path | Description | Status Codes |
+|--------|------|-------------|--------------|
+| POST | `/api/v1/transcripts/analyze` | Analyze a single transcript | 201, 422, 502 |
+| GET | `/api/v1/transcripts/{analysis_id}` | Get analysis by ID | 200, 404 |
+| POST | `/api/v1/transcripts/analyze/batch` | Analyze multiple transcripts concurrently | 201, 422, 502 |
 
 ## Running Tests
 
@@ -50,4 +77,13 @@ pytest -v
 For test coverage report:
 ```bash
 pytest --cov
+```
+
+## Linting and Formatting
+
+This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and formatting:
+
+```bash
+ruff check .
+ruff format .
 ```
