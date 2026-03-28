@@ -1,4 +1,6 @@
+import uuid
 from abc import ABC, abstractmethod
+
 from app.domain.models import TranscriptAnalysis
 
 
@@ -11,6 +13,6 @@ class TranscriptAnalysisRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_id(self, analysis_id: str) -> TranscriptAnalysis | None:
+    def get_by_id(self, analysis_id: uuid.UUID) -> TranscriptAnalysis | None:
         """Retrieve a transcript analysis by ID, or None if not found."""
         pass

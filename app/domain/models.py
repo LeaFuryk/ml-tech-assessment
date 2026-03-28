@@ -1,3 +1,5 @@
+import uuid
+
 import pydantic
 
 MAX_BATCH_SIZE = 10
@@ -13,7 +15,7 @@ class TranscriptAnalysisDTO(pydantic.BaseModel):
 class TranscriptAnalysis(pydantic.BaseModel):
     """Domain model stored and returned by the API."""
 
-    id: str
+    id: uuid.UUID
     summary: str
     action_items: list[str]
 

@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -9,9 +11,8 @@ from app.domain.models import TranscriptAnalysis, MAX_BATCH_SIZE
 
 class FakeTranscriptService:
     def __init__(self):
-        self._storage: dict[str, TranscriptAnalysis] = {}
+        self._storage: dict[uuid.UUID, TranscriptAnalysis] = {}
         self._should_fail = False
-        self._call_count = 0
 
     def set_failure(self, should_fail: bool):
         self._should_fail = should_fail
@@ -19,16 +20,15 @@ class FakeTranscriptService:
     def analyze(self, transcript: str) -> TranscriptAnalysis:
         if self._should_fail:
             raise TranscriptAnalysisError("LLM analysis failed")
-        self._call_count += 1
         analysis = TranscriptAnalysis(
-            id=f"generated-id-{self._call_count}",
+            id=uuid.uuid4(),
             summary="Test summary",
             action_items=["Action 1", "Action 2"],
         )
         self._storage[analysis.id] = analysis
         return analysis
 
-    def get_analysis(self, analysis_id: str) -> TranscriptAnalysis | None:
+    def get_analysis(self, analysis_id: uuid.UUID) -> TranscriptAnalysis | None:
         return self._storage.get(analysis_id)
 
     async def analyze_batch(self, transcripts: list[str]) -> list[TranscriptAnalysis]:
@@ -56,7 +56,7 @@ def test_analyze_returns_201_with_valid_transcript(client):
 
     assert response.status_code == 201
     data = response.json()
-    assert data["id"] == "generated-id-1"
+    assert uuid.UUID(data["id"])
     assert data["summary"] == "Test summary"
     assert data["action_items"] == ["Action 1", "Action 2"]
 
@@ -98,15 +98,11 @@ def test_analyze_returns_502_when_llm_fails(client, fake_service):
 
 
 def test_get_analysis_returns_200_for_existing_id(client):
-    client.post(
+    create_resp = client.post(
         "/api/v1/transcripts/analyze",
         json={"transcript": "Some transcript text"},
     )
-
-    analysis_id = client.post(
-        "/api/v1/transcripts/analyze",
-        json={"transcript": "Some transcript text"},
-    ).json()["id"]
+    analysis_id = create_resp.json()["id"]
 
     response = client.get(f"/api/v1/transcripts/{analysis_id}")
 
@@ -114,8 +110,13 @@ def test_get_analysis_returns_200_for_existing_id(client):
     assert response.json()["id"] == analysis_id
 
 
+def test_get_analysis_returns_422_for_invalid_uuid(client):
+    response = client.get("/api/v1/transcripts/not-a-uuid")
+    assert response.status_code == 422
+
+
 def test_get_analysis_returns_404_for_unknown_id(client):
-    response = client.get("/api/v1/transcripts/nonexistent")
+    response = client.get(f"/api/v1/transcripts/{uuid.uuid4()}")
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Analysis not found"

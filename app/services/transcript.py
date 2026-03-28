@@ -37,7 +37,7 @@ class TranscriptService:
             raise TranscriptAnalysisError("LLM returned an empty response")
 
         return TranscriptAnalysis(
-            id=str(uuid.uuid4()),
+            id=uuid.uuid4(),
             summary=response.summary,
             action_items=response.action_items,
         )
@@ -50,7 +50,7 @@ class TranscriptService:
         logger.info("Transcript analysis completed with id=%s", analysis.id)
         return analysis
 
-    def get_analysis(self, analysis_id: str) -> TranscriptAnalysis | None:
+    def get_analysis(self, analysis_id: uuid.UUID) -> TranscriptAnalysis | None:
         """Retrieve a stored transcript analysis by its ID."""
         logger.info("Fetching transcript analysis id=%s", analysis_id)
         return self._repository.get_by_id(analysis_id)

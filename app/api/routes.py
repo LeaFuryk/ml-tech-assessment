@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, HTTPException, Request, Depends
 from app.domain.errors import TranscriptAnalysisError
 from app.domain.models import (
@@ -42,7 +44,7 @@ def analyze_transcript(
     summary="Get analysis by ID",
 )
 def get_analysis(
-    analysis_id: str, service: TranscriptService = Depends(get_transcript_service)
+    analysis_id: uuid.UUID, service: TranscriptService = Depends(get_transcript_service)
 ):
     analysis = service.get_analysis(analysis_id)
     if analysis is None:
