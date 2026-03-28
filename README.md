@@ -1,5 +1,30 @@
 # ml-tech-assessment
 
+## Project Structure
+
+```
+app/
+├── api/routes.py                  # FastAPI endpoints
+├── adapters/
+│   ├── openai.py                  # OpenAI LLM adapter (provided)
+│   └── in_memory_transcript_repository.py
+├── domain/
+│   ├── models.py                  # DTOs and domain models
+│   └── errors.py                  # Custom exceptions
+├── ports/
+│   ├── llm.py                     # LLM port interface (provided)
+│   └── transcript_analysis_repository.py
+├── services/transcript.py         # Business logic
+├── configurations.py              # Environment config
+├── prompts.py                     # LLM prompts (provided)
+└── main.py                        # App entrypoint
+tests/
+├── adapters/                      # Repository + OpenAI adapter tests
+├── api/                           # API route tests
+├── domain/                        # Model validation tests
+└── services/                      # Service logic tests
+```
+
 ## Environment Setup
 
 ### Using Conda (Recommended)
@@ -56,6 +81,20 @@ Swagger UI is available at: `http://localhost:8000/docs`
 | POST | `/api/v1/transcripts/analyze` | Analyze a single transcript | 201, 422, 502 |
 | GET | `/api/v1/transcripts/{analysis_id}` | Get analysis by ID | 200, 404 |
 | POST | `/api/v1/transcripts/analyze/batch` | Analyze multiple transcripts concurrently | 201, 422, 502 |
+
+### Example Requests
+
+Example payloads are in the `examples/` directory. Use them with curl:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/transcripts/analyze \
+  -H "Content-Type: application/json" \
+  -d @examples/single_request.json
+
+curl -X POST http://localhost:8000/api/v1/transcripts/analyze/batch \
+  -H "Content-Type: application/json" \
+  -d @examples/batch_request.json
+```
 
 ## Running Tests
 
