@@ -11,6 +11,7 @@ router = APIRouter(prefix="/api/v1", tags=["Transcripts"])
 
 
 def get_transcript_service(request: Request):
+    """FastAPI dependency that retrieves the TranscriptService from app state."""
     service = getattr(request.app.state, "transcript_service", None)
     if service is None:
         raise HTTPException(
