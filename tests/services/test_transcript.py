@@ -9,9 +9,10 @@ from app.services.transcript import TranscriptService
 
 
 class FakeLLM(LLM):
-    def __init__(self, response=None, error=None):
+    def __init__(self, response=None, error=None, fail_on_call=None):
         self._response = response
         self._error = error
+        self._fail_on_call = fail_on_call
         self.last_system_prompt = None
         self.last_user_prompt = None
         self.call_count = 0
@@ -24,6 +25,8 @@ class FakeLLM(LLM):
         self.call_count += 1
         if self._error:
             raise self._error
+        if self._fail_on_call is not None and self.call_count >= self._fail_on_call:
+            raise RuntimeError("API failed mid-batch")
         return self._response
 
 
@@ -178,3 +181,14 @@ async def test_analyze_batch_propagates_llm_failure(repository):
 async def test_analyze_batch_calls_llm_once_per_transcript(service, llm):
     await service.analyze_batch(["Text 1", "Text 2", "Text 3"])
     assert llm.call_count == 3
+
+
+@pytest.mark.asyncio
+async def test_analyze_batch_does_not_persist_when_mid_batch_fails(repository):
+    llm = FakeLLM(response=_default_dto(), fail_on_call=2)
+    service = TranscriptService(llm, repository)
+
+    with pytest.raises(TranscriptAnalysisError):
+        await service.analyze_batch(["Text 1", "Text 2", "Text 3"])
+
+    assert repository.save_count == 0
