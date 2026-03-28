@@ -1,5 +1,7 @@
 # ml-tech-assessment
 
+A Python web API that analyzes coaching session transcripts using OpenAI and returns summaries with recommended action items. Built with FastAPI following hexagonal architecture.
+
 ## Project Structure
 
 ```
