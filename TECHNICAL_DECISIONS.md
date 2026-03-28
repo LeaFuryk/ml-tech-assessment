@@ -45,3 +45,7 @@ Batch requests are bounded by two guardrails with different configuration strate
 ## Batch Error Handling
 
 If any transcript in a batch fails, the entire batch fails with a 502. This all-or-nothing approach is simpler and more predictable than returning partial results, which would require a different response model and per-item error reporting.
+
+## Testing Strategy
+
+All tests mock the `LLM` port using a `FakeLLM` implementation, keeping the suite fast, deterministic, and free of external dependencies. The provided `test_openai.py` serves as an integration test against the real API. In a production setting, integration tests like this would be separated with a pytest marker (e.g., `@pytest.mark.integration`) to avoid running them in CI by default, since they are slow, cost money, and can flake on rate limits.
