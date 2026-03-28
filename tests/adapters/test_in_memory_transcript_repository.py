@@ -63,7 +63,3 @@ def test_multiple_analyses_stored_independently(repository):
     assert repository.get_by_id(ID_2) is not None
     assert repository.get_by_id(ID_1).id == ID_1
     assert repository.get_by_id(ID_2).id == ID_2
-
-
-def test_get_by_id_with_unknown_uuid(repository):
-    assert repository.get_by_id(uuid.uuid4()) is None

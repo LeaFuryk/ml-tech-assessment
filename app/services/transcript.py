@@ -9,15 +9,19 @@ from app.prompts import RAW_USER_PROMPT, SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
-MAX_CONCURRENT_ANALYSES = 3
-
 
 class TranscriptService:
     """Orchestrates transcript analysis using an LLM and persists results."""
 
-    def __init__(self, llm: LLM, repository: TranscriptAnalysisRepository) -> None:
+    def __init__(
+        self,
+        llm: LLM,
+        repository: TranscriptAnalysisRepository,
+        max_concurrent: int = 3,
+    ) -> None:
         self._llm = llm
         self._repository = repository
+        self._max_concurrent = max_concurrent
 
     def _run_analysis(self, transcript: str) -> TranscriptAnalysis:
         """Run LLM analysis and return the result without persisting."""
@@ -29,7 +33,7 @@ class TranscriptService:
                 dto=TranscriptAnalysisDTO,
             )
         except Exception as e:
-            logger.exception("LLM analysis failed", exc_info=True)
+            logger.exception("LLM analysis failed")
             raise TranscriptAnalysisError("LLM analysis failed") from e
 
         if response is None:
@@ -60,7 +64,7 @@ class TranscriptService:
         logger.info(
             "Starting batch transcript analysis for %d transcripts", len(transcripts)
         )
-        semaphore = asyncio.Semaphore(MAX_CONCURRENT_ANALYSES)
+        semaphore = asyncio.Semaphore(self._max_concurrent)
 
         async def run_one(transcript: str) -> TranscriptAnalysis:
             async with semaphore:

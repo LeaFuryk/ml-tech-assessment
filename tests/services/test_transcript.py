@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 import pydantic
 
@@ -32,14 +34,14 @@ class FakeLLM(LLM):
 
 class FakeRepository(TranscriptAnalysisRepository):
     def __init__(self):
-        self._storage: dict[str, TranscriptAnalysis] = {}
+        self._storage: dict[uuid.UUID, TranscriptAnalysis] = {}
         self.save_count = 0
 
     def save(self, analysis: TranscriptAnalysis) -> None:
         self._storage[analysis.id] = analysis
         self.save_count += 1
 
-    def get_by_id(self, analysis_id: str) -> TranscriptAnalysis | None:
+    def get_by_id(self, analysis_id: uuid.UUID) -> TranscriptAnalysis | None:
         return self._storage.get(analysis_id)
 
 
@@ -128,7 +130,7 @@ def test_get_analysis_returns_stored_result(service):
 
 
 def test_get_analysis_returns_none_for_unknown_id(service):
-    assert service.get_analysis("nonexistent") is None
+    assert service.get_analysis(uuid.uuid4()) is None
 
 
 def test_analyze_does_not_persist_when_llm_returns_none(repository):

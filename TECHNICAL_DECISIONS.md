@@ -33,12 +33,10 @@ This respects the port contract while fulfilling the requirement of handling mul
 
 ## Concurrency Limits
 
-Batch requests are bounded by two guardrails:
+Batch requests are bounded by two guardrails with different configuration strategies:
 
-- **MAX_BATCH_SIZE = 10** (`app/domain/models.py`): Validates at the request model level. Prevents excessively large payloads that could overwhelm the API or cause timeouts.
-- **MAX_CONCURRENT_ANALYSES = 3** (`app/services/transcript.py`): A semaphore in the service limits how many LLM calls run at the same time, reducing the risk of hitting OpenAI's API rate limits.
-
-These are defined as module-level constants with conservative defaults. In a production environment, they would be loaded from environment variables via `EnvConfigs` (e.g., `MAX_BATCH_SIZE`, `MAX_CONCURRENT_ANALYSES` in `.env`), allowing each deployment to tune them based on the OpenAI account's rate limit tier and infrastructure capacity without code changes.
+- **MAX_BATCH_SIZE = 10** (`app/domain/models.py`): A hardcoded constant validated at the request model level. This is intentionally not configurable via environment variables because it is part of the API contract — Pydantic exposes it in the Swagger/OpenAPI schema. Changing it at runtime would make the documented API inaccurate.
+- **MAX_CONCURRENT_ANALYSES** (`app/configurations.py`): Configurable via the `MAX_CONCURRENT_ANALYSES` environment variable (default: 3). Injected into `TranscriptService` through its constructor. This allows each deployment to tune concurrency based on the OpenAI account's rate limit tier without code changes.
 
 ## Batch Error Handling
 
