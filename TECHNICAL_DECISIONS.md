@@ -46,6 +46,23 @@ Batch requests are bounded by two guardrails with different configuration strate
 
 If any transcript in a batch fails, the entire batch fails with a 502. This all-or-nothing approach is simpler and more predictable than returning partial results, which would require a different response model and per-item error reporting.
 
+## Prompt Injection Defense
+
+The transcript is raw user input injected into the LLM prompt. To mitigate prompt injection, two layers of defense are applied:
+
+1. **System prompt instruction**: the system message explicitly tells the model to treat the transcript as raw data and not follow instructions within it. OpenAI gives system messages higher priority than user messages, making this the primary guard.
+2. **Delimiter tags**: the transcript is wrapped in `<transcript>` tags to reinforce the boundary between instructions and user content.
+
+Neither is bulletproof on its own, but together they significantly reduce the attack surface. The structured output schema (Pydantic DTO) adds a third layer by constraining the response shape regardless of what the model is tricked into generating.
+
+## Excluded DTO Field: Confidence
+
+A `confidence` score is a natural candidate for an LLM-powered DTO but was intentionally left out because it would be a pure passthrough — extracted from the LLM and returned to the caller without any logic acting on it.
+
+To justify its inclusion, it would need to drive behavior: trigger a retry with a rephrased prompt when below a threshold, flag low-confidence results for human review, or filter them from batch responses. The score would also need validation (`Field(ge=0.0, le=1.0)`) since LLM self-reported confidence is not calibrated and the model can return arbitrary values.
+
+Without this kind of downstream logic, adding a field to every layer (prompt, DTO, domain model, API response, tests) is plumbing overhead with no user-facing value.
+
 ## Testing Strategy
 
 All tests mock the `LLM` port using a `FakeLLM` implementation, keeping the suite fast, deterministic, and free of external dependencies. The provided `test_openai.py` serves as an integration test against the real API. In a production setting, integration tests like this would be separated with a pytest marker (e.g., `@pytest.mark.integration`) to avoid running them in CI by default, since they are slow, cost money, and can flake on rate limits.

@@ -14,7 +14,11 @@ async def lifespan(app: FastAPI):
     llm = OpenAIAdapter(config.OPENAI_API_KEY, config.OPENAI_MODEL)
     repository = InMemoryTranscriptRepository()
     transcript_service = TranscriptService(
-        llm, repository, max_concurrent=config.MAX_CONCURRENT_ANALYSES
+        llm,
+        repository,
+        model=config.OPENAI_MODEL,
+        max_transcript_tokens=config.MAX_TRANSCRIPT_TOKENS,
+        max_concurrent=config.MAX_CONCURRENT_ANALYSES,
     )
     app.state.transcript_service = transcript_service
     yield

@@ -1,6 +1,9 @@
 import asyncio
 import logging
+import time
 import uuid
+
+import tiktoken
 
 from app.domain.errors import TranscriptAnalysisError
 from app.domain.models import TranscriptAnalysis, TranscriptAnalysisDTO
@@ -9,7 +12,6 @@ from app.prompts import RAW_USER_PROMPT, SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
-
 class TranscriptService:
     """Orchestrates transcript analysis using an LLM and persists results."""
 
@@ -17,15 +19,30 @@ class TranscriptService:
         self,
         llm: LLM,
         repository: TranscriptAnalysisRepository,
+        model: str,
+        max_transcript_tokens: int,
         max_concurrent: int = 3,
     ) -> None:
         self._llm = llm
         self._repository = repository
         self._max_concurrent = max_concurrent
+        self._max_transcript_tokens = max_transcript_tokens
+        self._encoder = tiktoken.encoding_for_model(model)
+
+    def _count_tokens(self, transcript: str) -> int:
+        """Count tokens and reject transcripts that would exceed the model's context window."""
+        token_count = len(self._encoder.encode(transcript))
+        if token_count > self._max_transcript_tokens:
+            raise TranscriptAnalysisError(
+                f"Transcript exceeds token limit ({token_count} tokens, max {self._max_transcript_tokens})"
+            )
+        return token_count
 
     def _run_analysis(self, transcript: str) -> TranscriptAnalysis:
         """Run LLM analysis and return the result without persisting."""
+        token_count = self._count_tokens(transcript)
         prompt = RAW_USER_PROMPT.format(transcript=transcript)
+        start = time.monotonic()
         try:
             response = self._llm.run_completion(
                 system_prompt=SYSTEM_PROMPT,
@@ -35,6 +52,13 @@ class TranscriptService:
         except Exception as e:
             logger.exception("LLM analysis failed")
             raise TranscriptAnalysisError("LLM analysis failed") from e
+
+        duration = time.monotonic() - start
+        logger.info(
+            "LLM call completed in %.2fs, token_count=%d",
+            duration,
+            token_count,
+        )
 
         if response is None:
             logger.error("LLM returned an empty response")

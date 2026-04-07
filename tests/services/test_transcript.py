@@ -64,7 +64,7 @@ def llm():
 
 @pytest.fixture
 def service(llm, repository):
-    return TranscriptService(llm, repository)
+    return TranscriptService(llm, repository, model="gpt-4o-2024-08-06", max_transcript_tokens=12000)
 
 
 def test_analyze_returns_analysis_with_expected_fields(service):
@@ -90,7 +90,7 @@ def test_analyze_formats_prompt_with_transcript(service, llm):
 
 def test_analyze_raises_when_llm_throws(repository):
     llm = FakeLLM(error=RuntimeError("API down"))
-    service = TranscriptService(llm, repository)
+    service = TranscriptService(llm, repository, model="gpt-4o-2024-08-06", max_transcript_tokens=12000)
 
     with pytest.raises(TranscriptAnalysisError, match="LLM analysis failed"):
         service.analyze("Some transcript")
@@ -98,7 +98,7 @@ def test_analyze_raises_when_llm_throws(repository):
 
 def test_analyze_raises_when_llm_returns_none(repository):
     llm = FakeLLM(response=None)
-    service = TranscriptService(llm, repository)
+    service = TranscriptService(llm, repository, model="gpt-4o-2024-08-06", max_transcript_tokens=12000)
 
     with pytest.raises(TranscriptAnalysisError, match="LLM returned an empty response"):
         service.analyze("Some transcript")
@@ -106,7 +106,7 @@ def test_analyze_raises_when_llm_returns_none(repository):
 
 def test_analyze_does_not_persist_when_llm_fails(repository):
     llm = FakeLLM(error=RuntimeError("API down"))
-    service = TranscriptService(llm, repository)
+    service = TranscriptService(llm, repository, model="gpt-4o-2024-08-06", max_transcript_tokens=12000)
 
     with pytest.raises(TranscriptAnalysisError):
         service.analyze("Some transcript")
@@ -135,12 +135,19 @@ def test_get_analysis_returns_none_for_unknown_id(service):
 
 def test_analyze_does_not_persist_when_llm_returns_none(repository):
     llm = FakeLLM(response=None)
-    service = TranscriptService(llm, repository)
+    service = TranscriptService(llm, repository, model="gpt-4o-2024-08-06", max_transcript_tokens=12000)
 
     with pytest.raises(TranscriptAnalysisError):
         service.analyze("Some transcript")
 
     assert repository.save_count == 0
+
+
+def test_analyze_raises_when_transcript_exceeds_token_limit(service):
+    long_transcript = "word " * (12000 + 1000)
+
+    with pytest.raises(TranscriptAnalysisError, match="exceeds token limit"):
+        service.analyze(long_transcript)
 
 
 @pytest.mark.asyncio
@@ -173,7 +180,7 @@ async def test_analyze_batch_single_transcript(service):
 @pytest.mark.asyncio
 async def test_analyze_batch_propagates_llm_failure(repository):
     llm = FakeLLM(error=RuntimeError("API down"))
-    service = TranscriptService(llm, repository)
+    service = TranscriptService(llm, repository, model="gpt-4o-2024-08-06", max_transcript_tokens=12000)
 
     with pytest.raises(TranscriptAnalysisError):
         await service.analyze_batch(["Text 1", "Text 2"])
@@ -188,7 +195,7 @@ async def test_analyze_batch_calls_llm_once_per_transcript(service, llm):
 @pytest.mark.asyncio
 async def test_analyze_batch_does_not_persist_when_mid_batch_fails(repository):
     llm = FakeLLM(response=_default_dto(), fail_on_call=2)
-    service = TranscriptService(llm, repository)
+    service = TranscriptService(llm, repository, model="gpt-4o-2024-08-06", max_transcript_tokens=12000)
 
     with pytest.raises(TranscriptAnalysisError):
         await service.analyze_batch(["Text 1", "Text 2", "Text 3"])
