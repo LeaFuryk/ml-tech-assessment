@@ -48,12 +48,9 @@ If any transcript in a batch fails, the entire batch fails with a 502. This all-
 
 ## Prompt Injection Defense
 
-The transcript is raw user input injected into the LLM prompt. To mitigate prompt injection, two layers of defense are applied:
+The transcript is raw user input injected into the LLM prompt. Since the prompts were provided as part of the assessment and kept unchanged, the primary defense is the structured output schema (Pydantic DTO), which constrains the response shape regardless of what the model is tricked into generating.
 
-1. **System prompt instruction**: the system message explicitly tells the model to treat the transcript as raw data and not follow instructions within it. OpenAI gives system messages higher priority than user messages, making this the primary guard.
-2. **Delimiter tags**: the transcript is wrapped in `<transcript>` tags to reinforce the boundary between instructions and user content.
-
-Neither is bulletproof on its own, but together they significantly reduce the attack surface. The structured output schema (Pydantic DTO) adds a third layer by constraining the response shape regardless of what the model is tricked into generating.
+In a production setting, the prompts would be hardened with additional layers: a system prompt instruction telling the model to treat the transcript as raw data, and delimiter tags (e.g., `<transcript>`) to reinforce the boundary between instructions and user content.
 
 ## Excluded DTO Field: Confidence
 
