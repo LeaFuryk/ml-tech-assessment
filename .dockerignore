@@ -1,0 +1,15 @@
+.env
+.git
+.gitignore
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.venv
+.coverage
+tests/
+docs/
+examples/
+README.md
+TECHNICAL_DECISIONS.md
+assessment.md

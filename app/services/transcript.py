@@ -5,7 +5,7 @@ import uuid
 
 import tiktoken
 
-from app.domain.errors import TranscriptAnalysisError
+from app.domain.errors import TranscriptAnalysisError, TranscriptValidationError
 from app.domain.models import TranscriptAnalysis, TranscriptAnalysisDTO
 from app.ports import LLM, TranscriptAnalysisRepository
 from app.prompts import RAW_USER_PROMPT, SYSTEM_PROMPT
@@ -33,7 +33,7 @@ class TranscriptService:
         """Count tokens and reject transcripts that would exceed the model's context window."""
         token_count = len(self._encoder.encode(transcript))
         if token_count > self._max_transcript_tokens:
-            raise TranscriptAnalysisError(
+            raise TranscriptValidationError(
                 f"Transcript exceeds token limit ({token_count} tokens, max {self._max_transcript_tokens})"
             )
         return token_count

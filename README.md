@@ -29,7 +29,18 @@ tests/
 
 ## Environment Setup
 
-### Using Conda (Recommended)
+### Using Docker (Recommended)
+
+Build and run with two commands:
+
+```bash
+docker build -t transcript-analyzer .
+docker run --env-file .env -p 8000:8000 transcript-analyzer
+```
+
+Requires a `.env` file in the project root with your `OPENAI_API_KEY`. Swagger UI is available at `http://localhost:8000/docs`.
+
+### Using Conda
 
 1. Install Conda if you haven't already:
    - Download and install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/products/distribution)

@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, HTTPException, Request, Depends
-from app.domain.errors import TranscriptAnalysisError
+from app.domain.errors import TranscriptAnalysisError, TranscriptValidationError
 from app.domain.models import (
     BatchTranscriptRequest,
     TranscriptRequest,
@@ -34,8 +34,10 @@ def analyze_transcript(
 ):
     try:
         return service.analyze(body.transcript)
-    except TranscriptAnalysisError as e:
-        raise HTTPException(status_code=502, detail=str(e))
+    except TranscriptValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except TranscriptAnalysisError:
+        raise HTTPException(status_code=502, detail="LLM analysis failed")
 
 
 @router.get(
@@ -64,5 +66,7 @@ async def analyze_batch(
 ):
     try:
         return await service.analyze_batch(body.transcripts)
-    except TranscriptAnalysisError as e:
-        raise HTTPException(status_code=502, detail=str(e))
+    except TranscriptValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except TranscriptAnalysisError:
+        raise HTTPException(status_code=502, detail="LLM analysis failed")

@@ -94,7 +94,7 @@ def test_analyze_returns_502_when_llm_fails(client, fake_service):
     )
 
     assert response.status_code == 502
-    assert "LLM analysis failed" in response.json()["detail"]
+    assert response.json()["detail"] == "LLM analysis failed"
 
 
 def test_get_analysis_returns_200_for_existing_id(client):
@@ -201,7 +201,7 @@ def test_batch_returns_502_when_llm_fails(client, fake_service):
     )
 
     assert response.status_code == 502
-    assert "LLM analysis failed" in response.json()["detail"]
+    assert response.json()["detail"] == "LLM analysis failed"
 
 
 def test_batch_single_transcript(client):

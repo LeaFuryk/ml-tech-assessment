@@ -3,7 +3,7 @@ import uuid
 import pytest
 import pydantic
 
-from app.domain.errors import TranscriptAnalysisError
+from app.domain.errors import TranscriptAnalysisError, TranscriptValidationError
 from app.domain.models import TranscriptAnalysis, TranscriptAnalysisDTO
 from app.ports.llm import LLM
 from app.ports.transcript_analysis_repository import TranscriptAnalysisRepository
@@ -146,7 +146,7 @@ def test_analyze_does_not_persist_when_llm_returns_none(repository):
 def test_analyze_raises_when_transcript_exceeds_token_limit(service):
     long_transcript = "word " * (12000 + 1000)
 
-    with pytest.raises(TranscriptAnalysisError, match="exceeds token limit"):
+    with pytest.raises(TranscriptValidationError, match="exceeds token limit"):
         service.analyze(long_transcript)
 
 
